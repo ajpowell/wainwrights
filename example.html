@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+Code from https://leafletjs.com/examples/quick-start/
+
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wainwright Fells</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
+
+    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet">
+
+    <!-- jquery -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+    <!-- leafletjs -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- markercluster -->
+    <!--
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+        <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster-src.js"></script>
+    -->
+
+    <!-- icon.glyph -->
+    <!--
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+        <script type="text/javascript" src="./Leaflet.Icon.Glyph.js"></script>
+    -->
+
+    <!-- awesome markers-->
+    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
+    <link rel="stylesheet" href="./leaflet.awesome-markers.css">
+    <script src="./leaflet.awesome-markers.js"></script>
+
+    <script src="wainwrights.js"></script>
+
+    <style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+		.leaflet-container {
+			height: 400px;
+			width: 600px;
+			max-width: 100%;
+			max-height: 100%;
+		}
+	</style>
+
+</head>
+<body>
+    <div id="map" style="width: 1200px; height: 800px;"></div>
+
+    <script>
+
+        var api_server_base_url = 'http://127.0.0.1:5000/wainwrights/';
+
+        const map = L.map('map').setView([54.454, -3.210], 14);
+
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Create layer group for the markers
+        var wainwrightLayerGroup = L.layerGroup().addTo(map);
+
+        // define the marker objects
+        var iconClimbed = L.AwesomeMarkers.icon({icon: 'check', prefix: 'fa', markerColor: 'green'});
+        var iconNotClimbed = L.AwesomeMarkers.icon({icon: '', prefix: 'fa', markerColor: 'red'});
+
+        // Configure the jQuery ajax object
+        $.ajaxSetup({cache:false});
+
+        function getVisibleWainwrights(){
+            console.log('>>> getVisibleWainwrights()')
+
+            var mapBounds = map.getBounds();
+
+            var lat1 = mapBounds._northEast.lat;
+            var lng1 = mapBounds._northEast.lng;
+
+            var lat2 = mapBounds._southWest.lat;
+            var lng2 = mapBounds._southWest.lng;
+
+            var server_full_url = api_server_base_url + '?lat1=' + lat1 + '&lng1=' + lng1
+                                                    + '&lat2=' + lat2 + '&lng2=' + lng2;
+
+            console.log(server_full_url)
+
+            var zoom = map.getZoom();
+
+            console.log('..Zoom level: ' + zoom)
+
+            $.getJSON(server_full_url, function (data) {
+                // Loop through each site and add marker to markers layer
+                console.log('..Got details from web server...')
+
+                console.log('....Clearing existing markers...')
+                // remove all the markers in one go
+                wainwrightLayerGroup.clearLayers();
+
+                console.log('....Found ' + data.length + ' Wainwrights in the current view...')
+                console.log('....Adding new markers...')
+                //console.log(data)
+                for (var i = 0; i < data.length; i++) {
+                    // Extract the values
+                    var id = data[i].id;
+                    var name = data[i].name;
+                    var climbed = data[i].climbed;
+                    var lng = data[i].lng;
+                    var lat = data[i].lat;
+                    var height_m = data[i].height_m;
+                    var height_ft = data[i].height_ft;
+
+                    //console.log(id + '-' + name + ':' + lng + '/' + lat);
+
+                    //console.log('climbed: ' + climbed)
+
+                    // Set the icon
+                    if (climbed == '1') 
+                        { var icon = iconClimbed; }
+                    else 
+                        { var icon = iconNotClimbed; }
+
+                    var title = id + ' - ' + name + ' - ' + height_m + 'm (' + height_ft + 'ft)';
+
+                    //console.log('......' + title);
+                    
+                    // Add the marker to the map
+                    //map.addLayer(new L.Marker(new L.LatLng(lat, lng), { title: title, icon: icon }).bindPopup(title));
+                    //Add the marker to the layer (easier to clear all the markers with one call!)
+                    var marker = new L.Marker(new L.LatLng(lat, lng), { title: title, icon: icon }).bindPopup(title).openPopup().addTo(wainwrightLayerGroup);
+
+                }
+            }).fail(function() {
+                console.log( ".getJSON error..." );
+            });
+        }
+
+        function plotMarker(lat, lng, title, icon){
+
+        }
+
+        map.on('moveend', function(ev) {
+            console.log('>> map.on(\'moveend\')');
+            //alert(ev.latlng); // ev is an event object (MouseEvent in this case)
+
+            // Get markers on map move/resize
+            getVisibleWainwrights();
+        });
+
+        // Get markers on initial page creation
+        getVisibleWainwrights();
+
+        // basic leafletjs markers
+        //var marker = L.marker([54.454263, -3.211682]).addTo(map); // Scafell Pike
+        //var marker = L.marker([54.447498, -3.224731]).addTo(map); // Scafell
+        //var marker = L.marker([54.462803, -3.221300]).addTo(map); // Lingmell
+
+        /*
+        var mapBounds = map.getBounds();
+
+        var lat1 = mapBounds._northEast.lat;
+        var lng1 = mapBounds._northEast.lng;
+
+        var lat2 = mapBounds._southWest.lat;
+        var lng2 = mapBounds._southWest.lng;
+
+        var server_base_url = 'http://127.0.0.1:5000/wainwrights/';
+
+        var server_full_url = server_base_url + '?lat1=' + lat1 + '&lng1=' + lng1
+                                                + '&lat2=' + lat2 + '&lng2=' + lng2;
+
+        //console.log(server_full_url)
+        */
+
+        
+        //var iconClimbed = L.AwesomeMarkers.icon({icon: 'check', prefix: 'fa', markerColor: 'green'});
+        //var iconNotClimbed = L.AwesomeMarkers.icon({icon: 'info', prefix: 'fa', markerColor: 'red'});
+        
+        
+        /*
+        $.getJSON(server_full_url, function (data) {
+            // Loop through each site and add marker to markers layer
+            console.log('..Getting details from web server...')
+            for (var i = 0; i < data.length; i++) {
+                var id = data[i].id;
+                var name = data[i].name;
+                var climbed = data[i].climbed;
+                var lng = data[i].lng;
+                var lat = data[i].lat;
+                var height_m = data[i].height_m;
+                var height_ft = data[i].height_ft;
+
+                //console.log(id + '-' + name + ':' + lng + '/' + lat);
+
+                //console.log('climbed: ' + climbed)
+
+                if (climbed == '1') 
+                    { var icon = iconClimbed; }
+                else 
+                    { var icon = iconNotClimbed; }
+
+                var title = id + ' - ' + name + ' - ' + height_m + 'm (' + height_ft + 'ft)';
+
+                console.log('title: ' + title);
+                //console.log('..adding marker...[lat:' + lat + '; lng:' + lng + ']');
+                map.addLayer(new L.Marker(new L.LatLng(lat, lng), { title: title, icon: icon }).bindPopup(title));
+            }
+        }).fail(function() {
+            console.log( ".getJSON error..." );
+        });
+        */
+        
+
+        /*
+        // Using local data in wainwrights.js
+        // using awesome-markers
+        var iconClimbed = L.AwesomeMarkers.icon({icon: 'check', prefix: 'fa', markerColor: 'green'});
+        var iconNotClimbed = L.AwesomeMarkers.icon({icon: 'info', prefix: 'fa', markerColor: 'red'});
+
+        for (var i = 0; i < wainwrightLocations.length; i++) {
+			var a = wainwrightLocations[i];
+
+            var lat = a[4];
+            var lng = a[5];
+
+            var climbed = a[6];
+
+			var title = a[0] + ' - ' + a[1] + ' - ' + a[2] + 'm (' + a[3] + 'ft)';
+
+            if (climbed == 1) 
+                { icon = iconClimbed; }
+            else 
+                { icon = iconNotClimbed; }
+
+            map.addLayer(new L.Marker(new L.LatLng(lat, lng), { title: title, icon: icon }).bindPopup(title));
+        }
+        */
+
+        /*
+        // using marker-cluster
+        var markers = new L.markerClusterGroup(
+            {
+            spiderfyOnMaxZoom: false,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: false
+            }
+        );
+
+        var iconClimbed = L.icon.glyph({ prefix: 'fas', glyph: 'check', glyphColor: 'white' })
+        var iconNotClimbed = L.icon.glyph({ prefix: 'fas', glyph: 'globe', glyphColor: 'red' })
+
+        for (var i = 0; i < wainwrightLocations.length; i++) {
+			var a = wainwrightLocations[i];
+			var title = a[0] + ' - ' + a[1] + ' - ' + a[2] + 'm (' + a[3] + 'ft)';
+
+            if (a[6] == 1) 
+                { icon = iconClimbed; }
+            else 
+                { icon = iconNotClimbed; }
+
+            var marker = L.marker(new L.LatLng(a[4], a[5]), { title: title, icon: icon });
+		    marker.bindPopup(title);
+		    markers.addLayer(marker);
+        }
+
+        map.addLayer(markers);
+        */
+
+        //var popup = L.popup()
+        //    .setLatLng([51.513, -0.09])
+        //    .setContent("I am a standalone popup.")
+        //    .openOn(map);
+
+        //var circle = L.circle([51.508, -0.11], {
+        //    color: 'red',
+        //    fillColor: '#f03',
+        //    fillOpacity: 0.5,
+        //    radius: 500
+        //}).addTo(map);
+
+        // var popup = L.popup();
+
+        //function onMapClick(e) {
+        //    popup
+        //        .setLatLng(e.latlng)
+        //        .setContent("You clicked the map at " + e.latlng.toString())
+        //        .openOn(map);
+        //}
+
+        //map.on('click', onMapClick);
+    </script>   
+</body>
+</html>
