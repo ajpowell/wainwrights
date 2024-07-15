@@ -6,6 +6,9 @@ import sqlite3
 # import json
 from datetime import datetime 
 
+
+ver = '0.1.0'
+
 server_starttime = datetime.now()
 
 app = Flask(__name__)
@@ -102,5 +105,9 @@ def index():
 
     return prepare_response(data, 200)
 
+
+print('')
+print('wainwrights api v{}'.format(ver))
+print('')
 
 app.run()
