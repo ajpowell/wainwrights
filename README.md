@@ -1,17 +1,31 @@
 # wainwrights
-Mapping wainwrights on openstreetmap using leafletjs
 
-example.html provides a basic page that displays a map (centered on Scarfell Pike)
+Mapping Wainwrights on openstreetmap using leafletjs
+
+example.html provides a basic page that displays a map (centered on Scarfell Pike) - green tick marker indicates Wainwrights that have been climbed.
 
 ![](./images/example.html.png)
 
 The marker data is supplied from server.py microservice with a sqlite DB backend.
 
-## Usage:
+## Usage - casual usage:
 
- - Start venv in a terminal
- - Install requirements with pip install -r requirements.txt
- - Start the microservice (wainwrights api) with python server.py
+ - From a terminal, start venv:
+    
+    `python3 -m venv .venv`
+
+ - Activate the venv:
+
+    `. ./.venv/bin/activate`
+
+ - Install the requirements:
+ 
+    `pip install -r requirements.txt`
+
+ - Start the microservice (wainwrights api):
+ 
+    `python server.py`
+
  - Open example.html in a browser
 
 ## Future plans/intentions:
