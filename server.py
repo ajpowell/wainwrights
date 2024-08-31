@@ -4,7 +4,7 @@
 from flask import Flask, jsonify, request
 import sqlite3
 # import json
-from datetime import datetime 
+from datetime import datetime
 
 
 ver = '0.1.0'
@@ -42,7 +42,7 @@ def stats():
     td_sec = td.seconds                                  # getting the seconds field of the timedelta
     hour_count, rem = divmod(td_sec, 3600)               # calculating the total hours
     minute_count, second_count = divmod(rem, 60)
-    timedelta_str = 'Uptime: {} days, {} hours, {} minutes, {} seconds'.format(td.days,hour_count,minute_count,second_count)
+    timedelta_str = 'Uptime: {} days, {} hours, {} minutes, {} seconds'.format(td.days, hour_count, minute_count, second_count)
     data = {
         "server_currenttime": now,
         "server_starttime": server_starttime,
@@ -50,11 +50,12 @@ def stats():
         }
     return prepare_response(data, 200)
 
+
 @app.route('/climbed/', methods=['GET'])
 def climbed():
     # Return all the wainwrights that have been climbed
     con = sqlite3.connect('wainwrights.db')
-    con.row_factory = sqlite3.Row  # This enables column access by name: row['column_name'] 
+    con.row_factory = sqlite3.Row  # This enables column access by name: row['column_name']
 
     # Create a cursor object using the connection's "cursor" method
     cur = con.cursor()
@@ -88,16 +89,18 @@ def index():
                   )"""
 
     con = sqlite3.connect('wainwrights.db')
-    con.row_factory = sqlite3.Row  # This enables column access by name: row['column_name'] 
+    con.row_factory = sqlite3.Row  # This enables column access by name: row['column_name']
 
     # Create a cursor object using the connection's "cursor" method
     cur = con.cursor()
 
-    # SELECT * FROM wainwrights where lat between 54.442438 and 54.482348 and lng between -3.304963 and -3.201966;
-    sql = 'SELECT * FROM wainwrights where lat between {} and {} and lng between {} and {};'.format(lat2, lat1, lng2, lng1)
+    # SELECT * FROM wainwrights
+    #  WHERE lat BETWEEN 54.442438 AND 54.482348
+    #    AND lng BETWEEN -3.304963 AND -3.201966;
+    sql = 'SELECT * FROM wainwrights WHERE lat BETWEEN {} AND {} AND lng between {} and {};'.format(lat2, lat1, lng2, lng1)
 
     # print(sql)
-    
+
     # Execute a SQL statement
     rows = cur.execute(sql).fetchall()
 
