@@ -11,7 +11,7 @@ ver = '0.1.0'
 
 server_starttime = datetime.now()
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 
 # Helper function to return a response with status code and CORS headers
@@ -20,8 +20,20 @@ def prepare_response(res_object, status_code):
     # response = res_object
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
     # print(response)
     return response, status_code
+
+
+@app.route('/', methods=['GET'])
+def mainpage():
+    with open('./static/example.html', 'r') as fd:
+        data = fd.read()
+
+    # return 'mainpage', 200
+    # return app.send_static_file('./static/example.html')
+    return data, 200
+    return prepare_response(data, 200)
 
 
 @app.route('/test/', methods=['GET'])
