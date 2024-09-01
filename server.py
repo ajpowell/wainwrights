@@ -125,4 +125,4 @@ print('')
 print('wainwrights api v{}'.format(ver))
 print('')
 
-app.run()
+app.run(host='0.0.0.0')
