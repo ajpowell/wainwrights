@@ -1,7 +1,8 @@
 FROM python:3.9-slim
 
 # Create a non-root user to own the files and run our server
-RUN adduser wainwrights
+# Funky arguments to suppress prompting
+RUN adduser --gecos "" --disabled-password  wainwrights
 USER wainwrights
 WORKDIR /home/wainwrights
 
