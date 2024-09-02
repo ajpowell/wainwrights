@@ -22,5 +22,8 @@ CMD ["python", "server.py"]
 # Build with:
 # podman build -t wainwrights:latest . 
 #
-# Run with:
-# podman run -it --rm -p 8080:5000 wainwrights:latest
+# Run interactively with:
+# podman run -it --rm -p 5000:5000 --name wainwrights wainwrights:latest
+
+# Run as a daemon with:
+# podman run -d --rm -p 5000:5000 --name wainwrights wainwrights:latest
