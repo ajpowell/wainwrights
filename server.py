@@ -30,10 +30,7 @@ def mainpage():
     with open('./static/example.html', 'r') as fd:
         data = fd.read()
 
-    # return 'mainpage', 200
-    # return app.send_static_file('./static/example.html')
     return data, 200
-    return prepare_response(data, 200)
 
 
 @app.route('/test/', methods=['GET'])
