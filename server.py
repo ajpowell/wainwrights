@@ -7,7 +7,7 @@ import sqlite3
 from datetime import datetime
 
 
-ver = '0.1.0'
+ver = '0.1.1'
 
 server_starttime = datetime.now()
 
@@ -41,6 +41,14 @@ def test():
     return prepare_response(data, 200)
 
 
+@app.route('/version/', methods=['GET'])
+def version():
+    # api query to check api server is running
+    data = {"version": ver}
+
+    return prepare_response(data, 200)
+
+
 @app.route('/stats/', methods=['GET'])
 def stats():
     # api query to get statistics about the api server
@@ -55,7 +63,8 @@ def stats():
     data = {
         "server_currenttime": now,
         "server_starttime": server_starttime,
-        "server_uptime": timedelta_str
+        "server_uptime": timedelta_str,
+        "server_version": ver
         }
     return prepare_response(data, 200)
 
@@ -122,4 +131,5 @@ print('')
 print('wainwrights api v{}'.format(ver))
 print('')
 
+# Run on all interfaces...
 app.run(host='0.0.0.0')
