@@ -9,7 +9,7 @@ from datetime import datetime
 
 ver = '0.1.1'
 
-port = 3000
+port = 5000
 
 debug = False
 
