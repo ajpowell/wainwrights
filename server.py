@@ -9,6 +9,10 @@ from datetime import datetime
 
 ver = '0.1.1'
 
+port = 3000
+
+debug = False
+
 server_starttime = datetime.now()
 
 app = Flask(__name__, static_url_path='/static')
@@ -27,6 +31,9 @@ def prepare_response(res_object, status_code):
 
 @app.route('/', methods=['GET'])
 def mainpage():
+    ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    print('Your IP address is: {}'.format(ip_addr))
+
     with open('./static/example.html', 'r') as fd:
         data = fd.read()
 
@@ -127,9 +134,10 @@ def index():
     return prepare_response(data, 200)
 
 
-print('')
-print('wainwrights api v{}'.format(ver))
-print('')
+if __name__ == '__main__':
+    print('')
+    print('wainwrights api v{}'.format(ver))
+    print('')
 
-# Run on all interfaces...
-app.run(host='0.0.0.0')
+    # Run on all interfaces...
+    app.run(debug=debug, host='0.0.0.0', port=port)
