@@ -11,10 +11,10 @@ Code from https://leafletjs.com/examples/quick-start/
 
     <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
-    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet">
+    <link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet">
 
     <!-- jquery -->
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
     <!-- leafletjs -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -34,30 +34,30 @@ Code from https://leafletjs.com/examples/quick-start/
     -->
 
     <!-- awesome markers-->
-    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
-    <link rel="stylesheet" href="../static/leaflet.awesome-markers.css">
-    <script src="../static/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
+    <link rel="stylesheet" href="wainwrights/../static/leaflet.awesome-markers.css">
+    <script src="wainwrights/../static/leaflet.awesome-markers.js"></script>
 
     <!--<script src="wainwrights.js"></script>-->
 
     <!-- favicon support-->
-    <link rel="apple-touch-icon" sizes="180x180" href="static/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="static/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="wainwrights/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="wainwrights/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="wainwrights/static/favicon/favicon-16x16.png">
     <link rel="manifest" href="static/favicon/site.webmanifest">
 
     <style>
-		html, body {
-			height: 100%;
-			margin: 0;
-		}
-		.leaflet-container {
-			height: 400px;
-			width: 600px;
-			max-width: 100%;
-			max-height: 100%;
-		}
-	</style>
+                html, body {
+                        height: 100%;
+                        margin: 0;
+                }
+                .leaflet-container {
+                        height: 400px;
+                        width: 600px;
+                        max-width: 100%;
+                        max-height: 100%;
+                }
+        </style>
 
 </head>
 <body>
@@ -72,7 +72,7 @@ Code from https://leafletjs.com/examples/quick-start/
 
         const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
         // Create layer group for the markers
@@ -234,14 +234,14 @@ Code from https://leafletjs.com/examples/quick-start/
         var iconNotClimbed = L.AwesomeMarkers.icon({icon: 'info', prefix: 'fa', markerColor: 'red'});
 
         for (var i = 0; i < wainwrightLocations.length; i++) {
-			var a = wainwrightLocations[i];
+                        var a = wainwrightLocations[i];
 
             var lat = a[4];
             var lng = a[5];
 
             var climbed = a[6];
 
-			var title = a[0] + ' - ' + a[1] + ' - ' + a[2] + 'm (' + a[3] + 'ft)';
+                        var title = a[0] + ' - ' + a[1] + ' - ' + a[2] + 'm (' + a[3] + 'ft)';
 
             if (climbed == 1) 
                 { icon = iconClimbed; }
@@ -266,8 +266,8 @@ Code from https://leafletjs.com/examples/quick-start/
         var iconNotClimbed = L.icon.glyph({ prefix: 'fas', glyph: 'globe', glyphColor: 'red' })
 
         for (var i = 0; i < wainwrightLocations.length; i++) {
-			var a = wainwrightLocations[i];
-			var title = a[0] + ' - ' + a[1] + ' - ' + a[2] + 'm (' + a[3] + 'ft)';
+                        var a = wainwrightLocations[i];
+                        var title = a[0] + ' - ' + a[1] + ' - ' + a[2] + 'm (' + a[3] + 'ft)';
 
             if (a[6] == 1) 
                 { icon = iconClimbed; }
@@ -275,8 +275,8 @@ Code from https://leafletjs.com/examples/quick-start/
                 { icon = iconNotClimbed; }
 
             var marker = L.marker(new L.LatLng(a[4], a[5]), { title: title, icon: icon });
-		    marker.bindPopup(title);
-		    markers.addLayer(marker);
+                    marker.bindPopup(title);
+                    markers.addLayer(marker);
         }
 
         map.addLayer(markers);
