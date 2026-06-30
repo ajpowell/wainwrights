@@ -1,23 +1,29 @@
 FROM python:3.9-slim
 
-# Create a non-root user to own the files and run our server
-# Funky arguments to suppress prompting
-RUN adduser --gecos "" --disabled-password  wainwrights
-USER wainwrights
 WORKDIR /home/wainwrights
 
-# Copy the static website
-# Use the .dockerignore file to control what ends up inside the image!
-COPY ./static/ ./static/
+# Install dependencies first so the application image stays reproducible.
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Create a non-root user to run the server and a writable data directory for the user DB.
+RUN adduser --gecos "" --disabled-password wainwrights \
+    && mkdir -p /data \
+    && chown -R wainwrights:wainwrights /home/wainwrights /data
+
+ENV WAINWRIGHTS_USER_DB_PATH=/data/wainwrights_users.db
+
+# Copy the application sources and static assets.
+COPY ./static/ ./static/
 COPY server.py .
 COPY wainwrights.db .
 
-RUN pip install -r requirements.txt
+VOLUME ["/data"]
+USER wainwrights
 
 EXPOSE 5000
 
-# Run BusyBox httpd
+# Run the Flask app
 CMD ["python", "server.py"]
 
 # Build with:

@@ -163,3 +163,8 @@ cython_debug/
 
 # Ignore various macos files
 .DS_Store
+
+# Local app/session data
+.codex_session
+wainwrights_users.db
+.codex_resume

@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wainwrights</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon/favicon.ico" />
+
+    <link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet">
+
+    <!-- jquery -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+    <!-- leafletjs -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- awesome markers-->
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
+    <link rel="stylesheet" href="/static/leaflet.awesome-markers.css">
+    <script src="/static/leaflet.awesome-markers.js"></script>
+
+    <!-- favicon support-->
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+
+    <style>
+        :root {
+            --bg: #f5f0e6;
+            --panel: rgba(255, 255, 255, 0.92);
+            --text: #1f2933;
+            --muted: #5f6c75;
+            --green: #2f8f4e;
+            --red: #c94d3f;
+            --border: rgba(31, 41, 51, 0.12);
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            background:
+                radial-gradient(circle at top left, rgba(255,255,255,0.8), transparent 34%),
+                linear-gradient(180deg, #efe6d7 0%, #f8f4ec 42%, #eef2ef 100%);
+            color: var(--text);
+            font-family: Georgia, "Times New Roman", Times, serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem 0.75rem;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: clamp(2rem, 3vw, 3.25rem);
+            line-height: 1;
+            letter-spacing: 0.02em;
+        }
+
+        .header-panels {
+            display: flex;
+            flex-direction: row;
+            gap: 0.85rem;
+            align-items: stretch;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            margin-left: auto;
+            min-width: 0;
+        }
+
+        .legend, .summary, .auth-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 0.85rem 1rem;
+            box-shadow: 0 8px 24px rgba(31, 41, 51, 0.08);
+            backdrop-filter: blur(8px);
+        }
+
+        .auth-panel {
+            min-width: 260px;
+            order: 3;
+        }
+
+        .auth-title {
+            margin: 0 0 0.45rem;
+            font-size: 1rem;
+        }
+
+        .auth-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.5rem;
+            align-items: end;
+        }
+
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .auth-field label {
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .auth-field input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.55rem 0.65rem;
+            font: inherit;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--text);
+        }
+
+        .auth-button,
+        .popup-button {
+            border: 1px solid rgba(31, 41, 51, 0.16);
+            border-radius: 10px;
+            padding: 0.55rem 0.8rem;
+            background: #1f2933;
+            color: #fff;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .auth-button.secondary {
+            background: #fff;
+            color: var(--text);
+        }
+
+        .auth-message {
+            margin-top: 0.55rem;
+            min-height: 1.1em;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .csv-tools {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .csv-title {
+            margin: 0 0 0.45rem;
+            font-size: 0.95rem;
+        }
+
+        .csv-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .csv-file {
+            max-width: 100%;
+            font: inherit;
+            color: var(--muted);
+        }
+
+        .csv-message {
+            margin-top: 0.5rem;
+            min-height: 1.1em;
+            font-size: 0.85rem;
+            color: var(--muted);
+            white-space: pre-line;
+        }
+
+        .auth-status {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .auth-username {
+            font-weight: 700;
+        }
+
+        .summary {
+            min-width: 240px;
+            order: 1;
+        }
+
+        .legend {
+            min-width: 210px;
+            order: 2;
+        }
+
+        .legend h2, .summary h2 {
+            margin: 0 0 0.45rem;
+            font-size: 1rem;
+        }
+
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.95rem;
+        }
+
+        .legend-row + .legend-row {
+            margin-top: 0.45rem;
+        }
+
+        .legend-swatch {
+            width: 0.9rem;
+            height: 0.9rem;
+            border-radius: 999px;
+            flex: 0 0 auto;
+        }
+
+        .legend-swatch.climbed {
+            background: var(--green);
+        }
+
+        .legend-swatch.not-climbed {
+            background: var(--red);
+        }
+
+        .map-shell {
+            flex: 1;
+            padding: 0 1.5rem 1rem;
+            min-height: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            min-height: 420px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 18px 50px rgba(31, 41, 51, 0.16);
+            overflow: hidden;
+        }
+
+        .summary-line {
+            margin: 0;
+            font-size: 0.98rem;
+        }
+
+        .summary-line + .summary-line {
+            margin-top: 0.35rem;
+        }
+
+        .summary-value {
+            font-weight: 700;
+        }
+
+        .view-message {
+            margin-top: 0.15rem;
+            margin-bottom: 0.55rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .view-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.2rem;
+        }
+
+        .share-link-feedback {
+            font-size: 0.78rem;
+            color: var(--muted);
+            overflow-wrap: anywhere;
+        }
+
+        .marker-popup {
+            min-width: 250px;
+        }
+
+        .marker-popup h3 {
+            margin: 0 0 0.25rem;
+            font-size: 1.05rem;
+        }
+
+        .marker-popup .meta {
+            margin: 0 0 0.6rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .marker-popup label {
+            display: block;
+            margin: 0.45rem 0 0.2rem;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .marker-popup input[type="date"],
+        .marker-popup textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.5rem 0.6rem;
+            font: inherit;
+            background: rgba(255, 255, 255, 0.98);
+            color: var(--text);
+        }
+
+        .marker-popup textarea {
+            min-height: 72px;
+            resize: vertical;
+        }
+
+        .marker-popup .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.25rem;
+            font-size: 0.92rem;
+        }
+
+        .marker-popup .checkbox-row input {
+            margin: 0;
+        }
+
+        .marker-popup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+        }
+
+        .popup-note {
+            margin-top: 0.5rem;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .popup-status {
+            margin-top: 0.5rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .awesome-marker,
+        .awesome-marker-shadow {
+            transform: scale(0.5);
+            transform-origin: bottom center;
+        }
+
+        .leaflet-marker-icon {
+            will-change: transform;
+        }
+
+        @media (max-width: 700px) {
+            .page-header,
+            .map-shell,
+            .header-panels {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+            }
+
+            .header-panels {
+                width: 100%;
+                min-width: 0;
+                justify-content: flex-start;
+            }
+
+            .auth-form {
+                grid-template-columns: 1fr;
+            }
+
+            #map {
+                min-height: 360px;
+                border-radius: 16px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <header class="page-header">
+        <h1 class="page-title">Wainwrights</h1>
+        <div class="header-panels">
+            <section class="summary" aria-live="polite">
+                <h2>Current view</h2>
+                <div class="view-message" id="view-message"></div>
+                <p class="summary-line"><span class="summary-value" id="visible-count">0</span> visible</p>
+                <p class="summary-line"><span class="summary-value" id="climbed-count">0</span> climbed of <span class="summary-value" id="total-count">0</span> total</p>
+                <div class="view-actions">
+                    <button type="button" class="auth-button secondary" id="share-link-button">Share link</button>
+                    <span class="share-link-feedback" id="share-link-feedback"></span>
+                </div>
+            </section>
+
+            <section class="legend" aria-label="Marker legend">
+                <h2>Legend</h2>
+                <div class="legend-row"><span class="legend-swatch climbed"></span><span>Climbed Wainwright</span></div>
+                <div class="legend-row"><span class="legend-swatch not-climbed"></span><span>Not climbed yet</span></div>
+            </section>
+
+            <section class="auth-panel" aria-live="polite">
+                <h2 class="auth-title">Account</h2>
+                <div id="auth-panel-content"></div>
+                <div class="auth-message" id="auth-message"></div>
+            </section>
+        </div>
+    </header>
+
+    <main class="map-shell">
+        <div id="map"></div>
+    </main>
+
+    <script>
+
+        var serviceBaseUrl = window.location.origin;
+        if (!serviceBaseUrl || serviceBaseUrl === 'null') {
+            serviceBaseUrl = 'http://127.0.0.1:5000';
+        }
+        var api_server_base_url = serviceBaseUrl + '/wainwrights/';
+        var requestedUsername = new URL(window.location.href).searchParams.get('user');
+        var authState = {
+            authenticated: false,
+            username: null,
+        };
+        var currentShareUrl = buildShareUrl(null);
+
+        const map = L.map('map').setView([54.499914, -3.095534], 11);
+
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Create layer group for the markers
+        var wainwrightLayerGroup = L.layerGroup().addTo(map);
+
+        // define the marker objects
+        var iconClimbed = L.AwesomeMarkers.icon({icon: 'check', prefix: 'fa', markerColor: 'green'});
+        var iconNotClimbed = L.AwesomeMarkers.icon({icon: '', prefix: 'fa', markerColor: 'red'});
+
+        var totalWainwrights = 0;
+
+        // Configure the jQuery ajax object
+        $.ajaxSetup({cache:false});
+
+        var visibleWainwrightFetchTimer = null;
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value).replace(/\n/g, '&#10;');
+        }
+
+        function setAuthMessage(message) {
+            $('#auth-message').text(message || '');
+        }
+
+        function setCsvMessage(message) {
+            $('#csv-message').text(message || '');
+        }
+
+        function setShareLinkFeedback(message) {
+            $('#share-link-feedback').text(message || '');
+        }
+
+        function buildShareUrl(username) {
+            var baseUrl = window.location.origin + window.location.pathname;
+            if (!username) {
+                return baseUrl;
+            }
+
+            return baseUrl + '?user=' + encodeURIComponent(username);
+        }
+
+        function copyTextToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+
+            return new Promise(function(resolve, reject) {
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', 'readonly');
+                textarea.style.position = 'absolute';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                var successful = false;
+                try {
+                    successful = document.execCommand('copy');
+                } catch (err) {
+                    successful = false;
+                }
+
+                document.body.removeChild(textarea);
+
+                if (successful) {
+                    resolve();
+                } else {
+                    reject(new Error('Copy failed'));
+                }
+            });
+        }
+
+        function copyShareLink() {
+            var shareUrl = currentShareUrl || buildShareUrl(null);
+            setShareLinkFeedback('Copying share link...');
+
+            copyTextToClipboard(shareUrl).then(function() {
+                setShareLinkFeedback('Share link copied.');
+            }).catch(function() {
+                setShareLinkFeedback('Copy failed. Share this URL: ' + shareUrl);
+            });
+        }
+
+        function withRequestedUser(url) {
+            if (!requestedUsername) {
+                return url;
+            }
+
+            return url + (url.indexOf('?') === -1 ? '?' : '&') + 'user=' + encodeURIComponent(requestedUsername);
+        }
+
+        function renderAuthPanel() {
+            var content;
+            if (authState.authenticated) {
+                content = [
+                    '<div class="auth-status">',
+                    '<span>Signed in as <span class="auth-username">' + escapeHtml(authState.username) + '</span></span>',
+                    '<button type="button" class="auth-button secondary" id="logout-button">Logout</button>',
+                    '</div>',
+                    '<div class="csv-tools">',
+                    '<h3 class="csv-title">CSV tools</h3>',
+                    '<div class="csv-actions">',
+                    '<button type="button" class="auth-button secondary" id="export-csv-button">Export climbed</button>',
+                    '<input type="file" class="csv-file" id="import-csv-file" accept=".csv,text/csv">',
+                    '<button type="button" class="auth-button" id="import-csv-button">Import CSV</button>',
+                    '</div>',
+                    '<div class="csv-message" id="csv-message"></div>',
+                    '</div>',
+                ].join('');
+            } else {
+                content = [
+                    '<form class="auth-form" id="login-form" method="post" action="/api/login">',
+                    '<div class="auth-field"><label for="login-username">Username</label><input id="login-username" name="username" autocomplete="username" required></div>',
+                    '<div class="auth-field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required></div>',
+                    '<button type="submit" class="auth-button">Login / Create</button>',
+                    '</form>',
+                    '<div class="popup-note">New usernames are created on first login.</div>',
+                ].join('');
+            }
+
+            $('#auth-panel-content').html(content);
+
+            if (authState.authenticated) {
+                $('#logout-button').on('click', logout);
+                $('#export-csv-button').on('click', exportClimbsCsv);
+                $('#import-csv-button').on('click', importClimbsCsv);
+            } else {
+                $('#login-form').on('submit', login);
+            }
+        }
+
+        function refreshSessionState() {
+            return $.getJSON(serviceBaseUrl + '/api/me', function (data) {
+                authState.authenticated = data.authenticated;
+                authState.username = data.username;
+                renderAuthPanel();
+                setAuthMessage(data.authenticated ? 'Authenticated. Editing enabled.' : 'Read-only mode. Login to edit.');
+            }).fail(function() {
+                authState.authenticated = false;
+                authState.username = null;
+                renderAuthPanel();
+                setAuthMessage('Authentication status unavailable.');
+            });
+        }
+
+        function login(event) {
+            event.preventDefault();
+            setAuthMessage('Signing in...');
+
+            var username = $('#login-username').val();
+            var password = $('#login-password').val();
+
+            $.ajax({
+                url: serviceBaseUrl + '/api/login',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username: username, password: password })
+            }).done(function() {
+                setAuthMessage('Authenticated. Reloading markers...');
+                refreshSessionState().always(function() {
+                    loadSummary();
+                    scheduleVisibleWainwrights();
+                });
+            }).fail(function(xhr) {
+                var message = 'Login failed.';
+                if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
+                    message = xhr.responseJSON.error;
+                }
+                setAuthMessage(message);
+            });
+        }
+
+        function logout() {
+            setAuthMessage('Signing out...');
+            setCsvMessage('');
+
+            $.ajax({
+                url: serviceBaseUrl + '/api/logout',
+                type: 'POST'
+            }).done(function() {
+                refreshSessionState().always(function() {
+                    loadSummary();
+                    scheduleVisibleWainwrights();
+                });
+            }).fail(function() {
+                setAuthMessage('Logout failed.');
+            });
+        }
+
+        function exportClimbsCsv() {
+            setCsvMessage('Preparing download...');
+            window.location.href = serviceBaseUrl + '/api/climbs/export';
+        }
+
+        function importClimbsCsv() {
+            var fileInput = document.getElementById('import-csv-file');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                setCsvMessage('Choose a CSV file first.');
+                return;
+            }
+
+            var file = fileInput.files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+            setCsvMessage('Importing ' + file.name + '...');
+
+            $.ajax({
+                url: serviceBaseUrl + '/api/climbs/import',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false
+            }).done(function(response) {
+                var lines = [];
+                lines.push('Imported. created=' + response.created + ', updated=' + response.updated + ', unchanged=' + response.unchanged);
+                if (response.warnings && response.warnings.length > 0) {
+                    lines.push('Warnings:');
+                    for (var i = 0; i < response.warnings.length; i++) {
+                        lines.push('- ' + response.warnings[i]);
+                    }
+                }
+                if (response.errors && response.errors.length > 0) {
+                    lines.push('Errors:');
+                    for (var j = 0; j < response.errors.length; j++) {
+                        lines.push('- ' + response.errors[j]);
+                    }
+                }
+                setCsvMessage(lines.join('\n'));
+                loadSummary();
+                scheduleVisibleWainwrights();
+            }).fail(function(xhr) {
+                var message = 'Import failed.';
+                if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
+                    message = xhr.responseJSON.error;
+                }
+                setCsvMessage(message);
+            });
+        }
+
+        function updateSummary(visibleCount, climbedCount) {
+            $('#visible-count').text(visibleCount);
+            $('#climbed-count').text(climbedCount);
+            $('#total-count').text(totalWainwrights);
+        }
+
+        function loadSummary() {
+            $.getJSON(withRequestedUser(serviceBaseUrl + '/stats/'), function (data) {
+                totalWainwrights = data.total_wainwrights;
+                $('#total-count').text(totalWainwrights);
+                var viewMessage = 'Viewing the base map.';
+                if (data.viewed_username) {
+                    if (data.can_edit) {
+                        viewMessage = 'Viewing your climbs.';
+                    } else {
+                        viewMessage = 'Viewing ' + data.viewed_username + '\'s shared climbs.';
+                    }
+                } else if (data.requested_username && !data.view_exists) {
+                    viewMessage = 'User ' + data.requested_username + ' not found. Showing the base map.';
+                } else if (data.authenticated) {
+                    viewMessage = 'Viewing your climbs.';
+                }
+                $('#view-message').text(viewMessage);
+                if (data.viewed_username) {
+                    currentShareUrl = buildShareUrl(data.viewed_username);
+                } else if (data.authenticated && !data.requested_username) {
+                    currentShareUrl = buildShareUrl(authState.username);
+                } else {
+                    currentShareUrl = buildShareUrl(null);
+                }
+                $('#share-link-button').prop('disabled', false).text('Share link');
+                $('#share-link-feedback').text(currentShareUrl);
+                setAuthMessage(data.can_edit ? 'Authenticated. Editing enabled.' : (data.viewed_username ? 'Read-only shared view.' : 'Read-only mode. Login to edit.'));
+            }).fail(function() {
+                console.log('.getJSON summary error...');
+            });
+        }
+
+        function buildMarkerPopup(record) {
+            var climbedId = 'climbed-' + record.id;
+            var dateId = 'date-' + record.id;
+            var commentId = 'comment-' + record.id;
+            var editable = !!record.editable;
+            var climbedChecked = record.climbed == '1' || record.climbed === 1;
+            var climbDate = record.climb_date || '';
+            var comment = record.comment || '';
+
+            return [
+                '<div class="marker-popup" id="popup-' + record.id + '">',
+                '<h3>' + escapeHtml(record.name) + '</h3>',
+                '<p class="meta">' + escapeHtml(record.height_m) + 'm (' + escapeHtml(record.height_ft) + 'ft) | ID ' + escapeHtml(record.id) + '</p>',
+                '<form data-wainwright-id="' + escapeHtml(record.id) + '" class="marker-form">',
+                '<div class="checkbox-row">',
+                '<input type="checkbox" id="' + climbedId + '"' + (climbedChecked ? ' checked' : '') + (editable ? '' : ' disabled') + '>',
+                '<label for="' + climbedId + '">Climbed</label>',
+                '</div>',
+                '<label for="' + dateId + '">Date</label>',
+                '<input type="date" id="' + dateId + '" value="' + escapeAttr(climbDate) + '"' + (editable ? '' : ' disabled') + '>',
+                '<label for="' + commentId + '">Comment</label>',
+                '<textarea id="' + commentId + '" maxlength="100"' + (editable ? '' : ' disabled') + '>' + escapeHtml(comment) + '</textarea>',
+                '<div class="marker-popup-actions">',
+                editable ? '<button type="submit" class="popup-button">Save</button>' : '',
+                '</div>',
+                '<div class="popup-note">' + (editable ? 'Right-click to edit. Changes are saved to your local account.' : 'Login to edit this marker.') + '</div>',
+                '<div class="popup-status" id="status-' + record.id + '"></div>',
+                '</form>',
+                '</div>',
+            ].join('');
+        }
+
+        function bindMarkerPopupHandlers(marker, record) {
+            marker.on('popupopen', function() {
+                if (!authState.authenticated || !record.editable) {
+                    return;
+                }
+
+                var form = document.querySelector('#popup-' + record.id + ' .marker-form');
+                if (!form) {
+                    return;
+                }
+
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+
+                    var climbed = document.getElementById('climbed-' + record.id).checked;
+                    var climbDate = document.getElementById('date-' + record.id).value;
+                    var comment = document.getElementById('comment-' + record.id).value;
+                    var statusEl = document.getElementById('status-' + record.id);
+
+                    statusEl.textContent = 'Saving...';
+
+                    $.ajax({
+                        url: '/api/wainwrights/' + record.id,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            climbed: climbed,
+                            climb_date: climbDate,
+                            comment: comment
+                        })
+                    }).done(function() {
+                        statusEl.textContent = 'Saved.';
+                        scheduleVisibleWainwrights();
+                    }).fail(function(xhr) {
+                        var message = 'Save failed.';
+                        if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
+                            message = xhr.responseJSON.error;
+                        }
+                        statusEl.textContent = message;
+                    });
+                });
+            });
+        }
+
+        function getVisibleWainwrights(){
+            console.log('>>> getVisibleWainwrights()')
+
+            var mapBounds = map.getBounds();
+
+            var lat1 = mapBounds._northEast.lat;
+            var lng1 = mapBounds._northEast.lng;
+
+            var lat2 = mapBounds._southWest.lat;
+            var lng2 = mapBounds._southWest.lng;
+
+            var server_full_url = withRequestedUser(
+                api_server_base_url + '?lat1=' + lat1 + '&lng1=' + lng1
+                    + '&lat2=' + lat2 + '&lng2=' + lng2
+            );
+
+            console.log(server_full_url)
+
+            var zoom = map.getZoom();
+
+            console.log('..Zoom level: ' + zoom)
+
+            $.getJSON(server_full_url, function (data) {
+                // Loop through each site and add marker to markers layer
+                console.log('..Got details from web server...')
+
+                console.log('....Clearing existing markers...')
+                // remove all the markers in one go
+                wainwrightLayerGroup.clearLayers();
+
+                console.log('....Found ' + data.length + ' Wainwrights in the current view...')
+                console.log('....Adding new markers...')
+                var climbedCount = 0;
+                //console.log(data)
+                for (var i = 0; i < data.length; i++) {
+                    // Extract the values
+                    var record = data[i];
+                    var id = record.id;
+                    var name = record.name;
+                    var climbed = record.climbed;
+                    var lng = record.lng;
+                    var lat = record.lat;
+                    var height_m = record.height_m;
+                    var height_ft = record.height_ft;
+
+                    //console.log(id + '-' + name + ':' + lng + '/' + lat);
+
+                    //console.log('climbed: ' + climbed)
+
+                    // Set the icon
+                    if (climbed == '1') 
+                        { var icon = iconClimbed; }
+                    else 
+                        { var icon = iconNotClimbed; }
+
+                    if (climbed == '1') {
+                        climbedCount += 1;
+                    }
+
+                    var title = id + ' - ' + name + ' - ' + height_m + 'm (' + height_ft + 'ft)';
+
+                    //console.log('......' + title);
+                    
+                    // Add the marker to the layer (easier to clear all the markers with one call!)
+                    var marker = new L.Marker(new L.LatLng(lat, lng), { title: title, icon: icon }).addTo(wainwrightLayerGroup);
+                    marker.bindPopup(buildMarkerPopup(record), { maxWidth: 340 });
+                    marker.on('contextmenu', function() {
+                        this.openPopup();
+                    });
+                    bindMarkerPopupHandlers(marker, record);
+
+                }
+                updateSummary(data.length, climbedCount);
+            }).fail(function() {
+                console.log( ".getJSON error..." );
+            });
+        }
+
+        function scheduleVisibleWainwrights() {
+            if (visibleWainwrightFetchTimer !== null) {
+                clearTimeout(visibleWainwrightFetchTimer);
+            }
+
+            visibleWainwrightFetchTimer = setTimeout(function () {
+                visibleWainwrightFetchTimer = null;
+                getVisibleWainwrights();
+            }, 250);
+        }
+
+        map.on('moveend', function(ev) {
+            console.log('>> map.on(\'moveend\')');
+            //alert(ev.latlng); // ev is an event object (MouseEvent in this case)
+
+            // Get markers on map move/resize
+            scheduleVisibleWainwrights();
+        });
+
+        // Get markers on initial page creation
+        $('#share-link-button').on('click', copyShareLink);
+        refreshSessionState().always(function() {
+            loadSummary();
+            scheduleVisibleWainwrights();
+        });
+
+    </script>   
+</body>
+</html>
