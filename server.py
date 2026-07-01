@@ -297,6 +297,7 @@ def version():
     return prepare_response(data, 200)
 
 
+@app.route('/wainwrights/api/me', methods=['GET'])
 @app.route('/api/me', methods=['GET'])
 def api_me():
     user = current_user()
@@ -313,6 +314,7 @@ def api_me():
     )
 
 
+@app.route('/wainwrights/api/login', methods=['POST'])
 @app.route('/api/login', methods=['POST'])
 def api_login():
     payload = request.get_json(silent=True) or request.form or {}
@@ -368,6 +370,7 @@ def api_login():
     )
 
 
+@app.route('/wainwrights/api/logout', methods=['POST'])
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
     user = current_user()
@@ -377,6 +380,7 @@ def api_logout():
     return prepare_response({"ok": True}, 200)
 
 
+@app.route('/wainwrights/api/climbs/export', methods=['GET'])
 @app.route('/api/climbs/export', methods=['GET'])
 def export_climbs():
     user = current_user()
@@ -417,6 +421,7 @@ def export_climbs():
     return response
 
 
+@app.route('/wainwrights/api/climbs/import', methods=['POST'])
 @app.route('/api/climbs/import', methods=['POST'])
 def import_climbs():
     user = current_user()
@@ -620,6 +625,7 @@ def import_climbs():
     )
 
 
+@app.route('/wainwrights/stats/', methods=['GET'])
 @app.route('/stats/', methods=['GET'])
 def stats():
     now = datetime.now()
@@ -655,6 +661,7 @@ def stats():
     return prepare_response(data, 200)
 
 
+@app.route('/wainwrights/climbed/', methods=['GET'])
 @app.route('/climbed/', methods=['GET'])
 def climbed():
     data = [row for row in build_wainwright_payload() if row['climbed'] == 1]
@@ -662,6 +669,7 @@ def climbed():
     return prepare_response(data, 200)
 
 
+@app.route('/wainwrights/api/wainwrights/', methods=['GET'])
 @app.route('/wainwrights/', methods=['GET'])
 def index():
     lat1 = request.args.get('lat1', type=float)
@@ -691,6 +699,7 @@ def index():
     return prepare_response(data, 200)
 
 
+@app.route('/wainwrights/api/wainwrights/<int:wainwright_id>', methods=['POST'])
 @app.route('/api/wainwrights/<int:wainwright_id>', methods=['POST'])
 def update_wainwright(wainwright_id):
     user = current_user()
