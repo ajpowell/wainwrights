@@ -9,7 +9,7 @@ import logging
 import sqlite3
 import time
 
-from flask import Flask, jsonify, request, send_from_directory, session
+from flask import Flask, jsonify, render_template_string, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -266,7 +266,11 @@ def mainpage():
     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
     logger.info('mainpage request ip=%s', ip_addr)
 
-    return send_from_directory(STATIC_DIR, 'wainwrights.html')
+    template_path = STATIC_DIR / 'wainwrights.html'
+    with template_path.open('r', encoding='utf-8') as handle:
+        template = handle.read()
+
+    return render_template_string(template)
 
 
 @app.route('/test/', methods=['GET'])
