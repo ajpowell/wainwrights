@@ -22,7 +22,6 @@ COPY server.py .
 COPY wainwrights.db .
 
 VOLUME ["/data"]
-USER wainwrights
 
 EXPOSE 5000
 
