@@ -431,7 +431,13 @@
 
     <script>
 
-        var appBasePath = '{{ app_base_path }}';
+        var appBasePath = '{{ app_base_path|default("/wainwrights/", true) }}';
+        if (!appBasePath || appBasePath === '/') {
+            appBasePath = '/wainwrights/';
+        }
+        if (appBasePath.charAt(appBasePath.length - 1) !== '/') {
+            appBasePath = appBasePath + '/';
+        }
         var api_server_base_url = appBasePath;
         var requestedUsername = new URL(window.location.href).searchParams.get('user');
         var authState = {
