@@ -20,6 +20,16 @@ The default map view is centered on `54.499914, -3.095534` at zoom level `11`.
 
 When running in Docker, the user database is written to `/data/wainwrights_users.db` by default. Mount that directory to persist user accounts and climbs outside the container. The share link is generated from the browser URL, so behind a reverse proxy it should resolve to the public proxy address rather than the container's internal address, as long as users access the app through the proxy.
 
+The container uses Gunicorn with configurable settings:
+
+- `WEB_CONCURRENCY` defaults to `1`
+- `GUNICORN_THREADS` defaults to `2`
+- `GUNICORN_TIMEOUT` defaults to `60`
+
+Those defaults keep the memory footprint small on a 1 GB VPS, but you can increase them in `docker run` or Compose if needed.
+
+For Compose, copy `.env.example` to `.env` and adjust the values there. Compose will load `.env` automatically.
+
 ## Usage - casual usage:
 
  - From a terminal, start venv:
@@ -44,11 +54,25 @@ When running in Docker, the user database is written to `/data/wainwrights_users
 
 - Build the image:
 
-  `docker build -t wainwrights:latest .`
+  `docker build -t localhost/wainwrights:latest .`
 
 - Run the container with a persisted user database:
 
-  `docker run -d --rm -p 5000:5000 -v ./data:/data --name wainwrights wainwrights:latest`
+  `docker run -d --rm -p 5000:5000 -v ./data:/data --name wainwrights localhost/wainwrights:latest`
+
+  Example with explicit Gunicorn settings:
+
+  `docker run -d --rm -p 5000:5000 -v ./data:/data -e WEB_CONCURRENCY=2 -e GUNICORN_THREADS=2 -e GUNICORN_TIMEOUT=60 --name wainwrights localhost/wainwrights:latest`
+
+- Or use Compose:
+
+  `docker compose up --build`
+
+  Optional first step:
+
+  `cp .env.example .env`
+
+  Compose tags the local image as `localhost/wainwrights:latest`.
 
 ## Future plans/intentions:
 

@@ -1,0 +1,16 @@
+services:
+  wainwrights:
+    image: localhost/wainwrights:latest
+    build:
+      context: .
+    container_name: wainwrights
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/data
+    environment:
+      WAINWRIGHTS_USER_DB_PATH: /data/wainwrights_users.db
+    restart: unless-stopped

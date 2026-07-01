@@ -65,6 +65,9 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# Local runtime environment
+.env
+
 # Scrapy stuff:
 .scrapy
 
@@ -168,3 +171,5 @@ cython_debug/
 .codex_session
 wainwrights_users.db
 .codex_resume
+# Ignore the users data directory
+*data
