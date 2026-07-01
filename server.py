@@ -273,6 +273,7 @@ def mainpage():
     return render_template_string(
         template,
         app_base_path='/wainwrights/',
+        asset_base_path=request.script_root or '/',
     )
 
 
