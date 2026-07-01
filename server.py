@@ -273,6 +273,11 @@ def mainpage():
     return render_template_string(template)
 
 
+@app.route('/assets/<path:filename>', methods=['GET'])
+def assets(filename):
+    return send_from_directory(STATIC_DIR, filename)
+
+
 @app.route('/test/', methods=['GET'])
 def test():
     # api query to check api server is running
