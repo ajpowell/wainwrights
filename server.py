@@ -329,29 +329,33 @@ def api_login():
         return prepare_response({"error": "username is too long"}, 400)
 
     now = iso_now()
-    with sqlite3.connect(USER_DB_PATH) as con:
-        con.row_factory = sqlite3.Row
-        row = con.execute(
-            'SELECT id, username, password_hash FROM users WHERE username = ?;',
-            (username,),
-        ).fetchone()
+    try:
+        with sqlite3.connect(USER_DB_PATH) as con:
+            con.row_factory = sqlite3.Row
+            row = con.execute(
+                'SELECT id, username, password_hash FROM users WHERE username = ?;',
+                (username,),
+            ).fetchone()
 
-        if row is None:
-            password_hash = generate_password_hash(password)
-            cur = con.execute(
-                '''
-                INSERT INTO users (username, password_hash, created_at, updated_at)
-                VALUES (?, ?, ?, ?);
-                ''',
-                (username, password_hash, now, now),
-            )
-            user_id = cur.lastrowid
-            created = True
-        else:
-            if not check_password_hash(row['password_hash'], password):
-                return prepare_response({"error": "invalid username or password"}, 401)
-            user_id = row['id']
-            created = False
+            if row is None:
+                password_hash = generate_password_hash(password)
+                cur = con.execute(
+                    '''
+                    INSERT INTO users (username, password_hash, created_at, updated_at)
+                    VALUES (?, ?, ?, ?);
+                    ''',
+                    (username, password_hash, now, now),
+                )
+                user_id = cur.lastrowid
+                created = True
+            else:
+                if not check_password_hash(row['password_hash'], password):
+                    return prepare_response({"error": "invalid username or password"}, 401)
+                user_id = row['id']
+                created = False
+    except sqlite3.Error:
+        logger.exception('login database error username=%s db_path=%s', username, USER_DB_PATH)
+        return prepare_response({"error": "login database error"}, 500)
 
     session.clear()
     session.permanent = True
