@@ -270,7 +270,10 @@ def mainpage():
     with template_path.open('r', encoding='utf-8') as handle:
         template = handle.read()
 
-    return render_template_string(template)
+    return render_template_string(
+        template,
+        app_base_path='/wainwrights/',
+    )
 
 
 @app.route('/assets/<path:filename>', methods=['GET'])

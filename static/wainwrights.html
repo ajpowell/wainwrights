@@ -431,11 +431,8 @@
 
     <script>
 
-        var serviceBaseUrl = window.location.origin;
-        if (!serviceBaseUrl || serviceBaseUrl === 'null') {
-            serviceBaseUrl = 'http://127.0.0.1:5000';
-        }
-        var api_server_base_url = serviceBaseUrl + '/wainwrights/';
+        var appBasePath = '{{ app_base_path }}';
+        var api_server_base_url = appBasePath;
         var requestedUsername = new URL(window.location.href).searchParams.get('user');
         var authState = {
             authenticated: false,
@@ -487,6 +484,18 @@
 
         function setShareLinkFeedback(message) {
             $('#share-link-feedback').text(message || '');
+        }
+
+        function logAjaxFailure(label, url, xhr, textStatus, errorThrown) {
+            var status = xhr && typeof xhr.status !== 'undefined' ? xhr.status : 'unknown';
+            var responseText = xhr && xhr.responseText ? xhr.responseText : '';
+            console.log(
+                label + ' failed url=' + url +
+                ' status=' + status +
+                ' textStatus=' + (textStatus || '') +
+                ' error=' + (errorThrown || '') +
+                ' responseText=' + responseText
+            );
         }
 
         function buildShareUrl(username) {
@@ -569,7 +578,7 @@
                 ].join('');
             } else {
                 content = [
-                    '<form class="auth-form" id="login-form" method="post" action="/api/login">',
+                    '<form class="auth-form" id="login-form" method="post" action="' + api_server_base_url + 'api/login">',
                     '<div class="auth-field"><label for="login-username">Username</label><input id="login-username" name="username" autocomplete="username" required></div>',
                     '<div class="auth-field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required></div>',
                     '<button type="submit" class="auth-button">Login / Create</button>',
@@ -590,12 +599,14 @@
         }
 
         function refreshSessionState() {
-            return $.getJSON(serviceBaseUrl + '/api/me', function (data) {
+            var url = api_server_base_url + 'api/me';
+            return $.getJSON(url, function (data) {
                 authState.authenticated = data.authenticated;
                 authState.username = data.username;
                 renderAuthPanel();
                 setAuthMessage(data.authenticated ? 'Authenticated. Editing enabled.' : 'Read-only mode. Login to edit.');
-            }).fail(function() {
+            }).fail(function(xhr, textStatus, errorThrown) {
+                logAjaxFailure('refreshSessionState', url, xhr, textStatus, errorThrown);
                 authState.authenticated = false;
                 authState.username = null;
                 renderAuthPanel();
@@ -610,8 +621,10 @@
             var username = $('#login-username').val();
             var password = $('#login-password').val();
 
+            var url = api_server_base_url + 'api/login';
+
             $.ajax({
-                url: serviceBaseUrl + '/api/login',
+                url: url,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ username: username, password: password })
@@ -621,7 +634,8 @@
                     loadSummary();
                     scheduleVisibleWainwrights();
                 });
-            }).fail(function(xhr) {
+            }).fail(function(xhr, textStatus, errorThrown) {
+                logAjaxFailure('login', url, xhr, textStatus, errorThrown);
                 var message = 'Login failed.';
                 if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
                     message = xhr.responseJSON.error;
@@ -634,22 +648,25 @@
             setAuthMessage('Signing out...');
             setCsvMessage('');
 
+            var url = api_server_base_url + 'api/logout';
+
             $.ajax({
-                url: serviceBaseUrl + '/api/logout',
+                url: url,
                 type: 'POST'
             }).done(function() {
                 refreshSessionState().always(function() {
                     loadSummary();
                     scheduleVisibleWainwrights();
                 });
-            }).fail(function() {
+            }).fail(function(xhr, textStatus, errorThrown) {
+                logAjaxFailure('logout', url, xhr, textStatus, errorThrown);
                 setAuthMessage('Logout failed.');
             });
         }
 
         function exportClimbsCsv() {
             setCsvMessage('Preparing download...');
-            window.location.href = serviceBaseUrl + '/api/climbs/export';
+            window.location.href = api_server_base_url + 'api/climbs/export';
         }
 
         function importClimbsCsv() {
@@ -664,8 +681,10 @@
             formData.append('file', file);
             setCsvMessage('Importing ' + file.name + '...');
 
+            var url = api_server_base_url + 'api/climbs/import';
+
             $.ajax({
-                url: serviceBaseUrl + '/api/climbs/import',
+                url: url,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -688,7 +707,8 @@
                 setCsvMessage(lines.join('\n'));
                 loadSummary();
                 scheduleVisibleWainwrights();
-            }).fail(function(xhr) {
+            }).fail(function(xhr, textStatus, errorThrown) {
+                logAjaxFailure('importClimbsCsv', url, xhr, textStatus, errorThrown);
                 var message = 'Import failed.';
                 if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
                     message = xhr.responseJSON.error;
@@ -704,7 +724,8 @@
         }
 
         function loadSummary() {
-            $.getJSON(withRequestedUser(serviceBaseUrl + '/stats/'), function (data) {
+            var url = withRequestedUser(api_server_base_url + 'stats/');
+            $.getJSON(url, function (data) {
                 totalWainwrights = data.total_wainwrights;
                 $('#total-count').text(totalWainwrights);
                 var viewMessage = 'Viewing the base map.';
@@ -730,8 +751,8 @@
                 $('#share-link-button').prop('disabled', false).text('Share link');
                 $('#share-link-feedback').text(currentShareUrl);
                 setAuthMessage(data.can_edit ? 'Authenticated. Editing enabled.' : (data.viewed_username ? 'Read-only shared view.' : 'Read-only mode. Login to edit.'));
-            }).fail(function() {
-                console.log('.getJSON summary error...');
+            }).fail(function(xhr, textStatus, errorThrown) {
+                logAjaxFailure('loadSummary', url, xhr, textStatus, errorThrown);
             });
         }
 
@@ -788,8 +809,10 @@
 
                     statusEl.textContent = 'Saving...';
 
+                    var url = api_server_base_url + 'api/wainwrights/' + record.id;
+
                     $.ajax({
-                        url: '/api/wainwrights/' + record.id,
+                        url: url,
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -800,7 +823,8 @@
                     }).done(function() {
                         statusEl.textContent = 'Saved.';
                         scheduleVisibleWainwrights();
-                    }).fail(function(xhr) {
+                    }).fail(function(xhr, textStatus, errorThrown) {
+                        logAjaxFailure('saveWainwright', url, xhr, textStatus, errorThrown);
                         var message = 'Save failed.';
                         if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
                             message = xhr.responseJSON.error;
@@ -884,8 +908,8 @@
 
                 }
                 updateSummary(data.length, climbedCount);
-            }).fail(function() {
-                console.log( ".getJSON error..." );
+            }).fail(function(xhr, textStatus, errorThrown) {
+                logAjaxFailure('getVisibleWainwrights', server_full_url, xhr, textStatus, errorThrown);
             });
         }
 
