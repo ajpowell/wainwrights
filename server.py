@@ -670,6 +670,7 @@ def climbed():
 
 
 @app.route('/wainwrights/api/wainwrights/', methods=['GET'])
+@app.route('/api/wainwrights/', methods=['GET'])
 @app.route('/wainwrights/', methods=['GET'])
 def index():
     lat1 = request.args.get('lat1', type=float)
